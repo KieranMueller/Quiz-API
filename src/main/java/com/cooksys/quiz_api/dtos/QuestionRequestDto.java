@@ -6,11 +6,9 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
-public class AnswerResponseDto {
+public class QuestionRequestDto {
 
-  private Long id;
+    private Long id;
 
-  private String text;
-
+    private String text;
 }

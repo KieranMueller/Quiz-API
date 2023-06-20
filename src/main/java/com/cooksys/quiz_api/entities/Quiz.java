@@ -2,13 +2,11 @@ package com.cooksys.quiz_api.entities;
 
 import java.util.List;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.Cascade;
 
 @Entity
 @NoArgsConstructor
@@ -21,7 +19,15 @@ public class Quiz {
 
   private String name;
 
-  @OneToMany(mappedBy = "quiz")
+  @OneToMany(mappedBy = "quiz", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Question> questions;
+
+  public boolean addQuestion(Question question) {
+    return questions.add(question);
+  }
+
+  public boolean removeQuestion(Question question) {
+    return questions.remove(question);
+  }
 
 }
