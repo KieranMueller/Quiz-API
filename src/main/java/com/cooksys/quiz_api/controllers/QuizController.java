@@ -9,6 +9,7 @@ import com.cooksys.quiz_api.dtos.QuizResponseDto;
 import com.cooksys.quiz_api.services.QuizService;
 
 import com.cooksys.quiz_api.services.impl.QuizServiceImpl;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import lombok.RequiredArgsConstructor;
@@ -21,39 +22,39 @@ public class QuizController {
     private final QuizService quizService;
 
     @GetMapping
-    public List<QuizResponseDto> getAllQuizzes() {
+    public ResponseEntity<List<QuizResponseDto>> getAllQuizzes() {
         return quizService.getAllQuizzes();
     }
 
     // TODO: Implement the remaining 6 endpoints from the documentation.
 
     @PostMapping
-    public QuizResponseDto createQuiz(@RequestBody QuizRequestDto quizRequestDto) {
+    public ResponseEntity<QuizResponseDto> createQuiz(@RequestBody QuizRequestDto quizRequestDto) {
         return quizService.createQuiz(quizRequestDto);
     }
 
     @DeleteMapping("/{id}")
-    public QuizResponseDto deleteQuizById(@PathVariable Long id) {
+    public ResponseEntity<QuizResponseDto> deleteQuizById(@PathVariable Long id) {
         return quizService.deleteQuizById(id);
     }
 
     @PatchMapping("/{id}/rename/{newName}")
-    public QuizResponseDto renameQuiz(@PathVariable Long id, @PathVariable String newName) {
+    public ResponseEntity<QuizResponseDto> renameQuiz(@PathVariable Long id, @PathVariable String newName) {
         return quizService.renameQuiz(id, newName);
     }
 
     @GetMapping("/{id}/random")
-    public QuestionResponseDto getRandomQuestion(@PathVariable Long id) {
+    public ResponseEntity<QuestionResponseDto> getRandomQuestion(@PathVariable Long id) {
         return quizService.getRandomQuestion(id);
     }
 
     @PatchMapping("/{id}/add")
-    public QuizResponseDto addQuestion(@PathVariable Long id, @RequestBody QuestionRequestDto questionRequestDto) {
+    public ResponseEntity<QuizResponseDto> addQuestion(@PathVariable Long id, @RequestBody QuestionRequestDto questionRequestDto) {
         return quizService.addQuestion(id, questionRequestDto);
     }
 
     @DeleteMapping("/{id}/delete/{questionId}")
-    public QuestionResponseDto deleteQuestion(@PathVariable Long id, @PathVariable Long questionId) {
+    public ResponseEntity<QuestionResponseDto> deleteQuestion(@PathVariable Long id, @PathVariable Long questionId) {
         return quizService.deleteQuestion(id, questionId);
     }
 

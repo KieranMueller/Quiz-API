@@ -17,4 +17,6 @@ public interface QuestionMapper {
 
   Question requestDtoToEntity(QuestionRequestDto questionRequestDto);
 
+  List<Question> dtosToEntities(List<QuestionRequestDto> questionRequestDtos);
+
 }

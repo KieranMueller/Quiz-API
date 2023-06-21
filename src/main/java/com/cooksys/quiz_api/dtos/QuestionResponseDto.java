@@ -17,9 +17,6 @@ public class QuestionResponseDto {
 
   private String text;
 
-  @JsonIgnore
-  private Quiz quiz;
-
   public List<AnswerResponseDto> answers;
 
 }

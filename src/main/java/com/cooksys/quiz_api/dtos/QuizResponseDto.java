@@ -15,6 +15,6 @@ public class QuizResponseDto {
 
   private String name;
 
-  public List<QuestionResponseDto> questions;
+  private List<QuestionResponseDto> questions;
 
 }

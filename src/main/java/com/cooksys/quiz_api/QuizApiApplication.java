@@ -3,6 +3,8 @@ package com.cooksys.quiz_api;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 // To Do: Add ability to add answers to questions
+// Add front end?
+// Add more end points?
 @SpringBootApplication
 public class QuizApiApplication {
 
