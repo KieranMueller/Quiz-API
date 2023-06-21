@@ -11,17 +11,17 @@ import org.springframework.http.ResponseEntity;
 
 public interface QuizService {
 
-  ResponseEntity<List<QuizResponseDto>> getAllQuizzes();
+  List<QuizResponseDto> getAllQuizzes();
 
-  ResponseEntity<QuizResponseDto> createQuiz(QuizRequestDto quizRequestDto);
+  QuizResponseDto createQuiz(QuizRequestDto quizRequestDto);
 
-  ResponseEntity<QuizResponseDto> deleteQuizById(Long id);
+  QuizResponseDto deleteQuizById(Long id);
 
-  ResponseEntity<QuizResponseDto> renameQuiz(Long id, String newName);
+  QuizResponseDto renameQuiz(Long id, String newName);
 
-  ResponseEntity<QuestionResponseDto> getRandomQuestion(Long id);
+  QuestionResponseDto getRandomQuestion(Long id);
 
-  ResponseEntity<QuizResponseDto> addQuestion(Long id, QuestionRequestDto questionRequestDto);
+  QuizResponseDto addQuestion(Long id, QuestionRequestDto questionRequestDto);
 
-  ResponseEntity<QuestionResponseDto> deleteQuestion(Long id, Long questionId);
+  QuestionResponseDto deleteQuestion(Long id, Long questionId);
 }
