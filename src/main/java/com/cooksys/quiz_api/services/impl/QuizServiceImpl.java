@@ -1,14 +1,12 @@
 package com.cooksys.quiz_api.services.impl;
 
-import com.cooksys.quiz_api.dtos.QuestionRequestDto;
-import com.cooksys.quiz_api.dtos.QuestionResponseDto;
-import com.cooksys.quiz_api.dtos.QuizRequestDto;
-import com.cooksys.quiz_api.dtos.QuizResponseDto;
+import com.cooksys.quiz_api.dtos.*;
 import com.cooksys.quiz_api.entities.Answer;
 import com.cooksys.quiz_api.entities.Question;
 import com.cooksys.quiz_api.entities.Quiz;
 import com.cooksys.quiz_api.exception.BadRequestException;
 import com.cooksys.quiz_api.exception.NotFoundException;
+import com.cooksys.quiz_api.mappers.AnswerMapper;
 import com.cooksys.quiz_api.mappers.QuestionMapper;
 import com.cooksys.quiz_api.mappers.QuizMapper;
 import com.cooksys.quiz_api.repositories.AnswerRepository;
@@ -31,16 +29,16 @@ public class QuizServiceImpl implements QuizService {
     private final AnswerRepository answerRepository;
     private final QuizMapper quizMapper;
     private final QuestionMapper questionMapper;
+    private final AnswerMapper answerMapper;
 
     @Override
     public List<QuizResponseDto> getAllQuizzes() {
-        return quizMapper.entitiesToDtos(quizRepository.findAll());
+        return quizMapper.entitiesToDtos(quizRepository.findAllByDeletedFalse());
     }
 
     @Override
     public QuizResponseDto createQuiz(QuizRequestDto quizRequestDto) {
         // Implemented: Body MUST include Quiz with name, with questions, with at least one correct answer
-
         if (quizRequestDto == null || quizRequestDto.getName() == null || quizRequestDto.getQuestions() == null)
             throw new BadRequestException("Quiz Must Include \"name\" and \"questions\"");
         if (quizRequestDto.getName().isBlank() || quizRequestDto.getQuestions().size() == 0)
@@ -78,11 +76,21 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public QuizResponseDto deleteQuizById(Long id) {
-        Optional<Quiz> quizToReturn = quizRepository.findById(id);
-        if (quizToReturn.isEmpty())
+        // Implemented: Soft deletes quiz and children (Questions and Answers)
+        Optional<Quiz> opQuiz = quizRepository.findByIdAndDeletedFalse(id);
+        if (opQuiz.isEmpty())
             throw new NotFoundException("Unable To Find Quiz With ID " + id);
-        quizRepository.deleteById(id);
-        return quizMapper.entityToDto(quizToReturn.get());
+        Quiz quiz = opQuiz.get();
+        quiz.setDeleted(true);
+        for(var question : quiz.getQuestions()) {
+            question.setDeleted(true);
+            questionRepository.saveAndFlush(question);
+            for(var answer : question.getAnswers()) {
+                answer.setDeleted(true);
+                answerRepository.saveAndFlush(answer);
+            }
+        }
+        return quizMapper.entityToDto(quizRepository.saveAndFlush(quiz));
     }
 
     @Override
@@ -92,7 +100,7 @@ public class QuizServiceImpl implements QuizService {
             throw new BadRequestException("New Name Cannot Be Null");
         if (newName.isBlank())
             throw new BadRequestException("New Name Cannot Be Blank");
-        Optional<Quiz> quiz = quizRepository.findById(id);
+        Optional<Quiz> quiz = quizRepository.findByIdAndDeletedFalse(id);
         if (quiz.isEmpty())
             throw new BadRequestException("Unable To Find Quiz With ID " + id);
         quiz.map(q -> {
@@ -104,7 +112,7 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public QuestionResponseDto getRandomQuestion(Long id) {
-        Optional<Quiz> opQuiz = quizRepository.findById(id);
+        Optional<Quiz> opQuiz = quizRepository.findByIdAndDeletedFalse(id);
         if (opQuiz.isEmpty())
             throw new NotFoundException("Unable To Find Quiz With ID " + id);
         Quiz quiz = opQuiz.get();
@@ -122,7 +130,7 @@ public class QuizServiceImpl implements QuizService {
         // Implemented: If quiz ID does not exist, throws Not Found. If question coming in
         // is null OR text is null OR blank Bad Request. If ANY answer is null or blank, bad request.
         // If there is no correct answer, bad request.
-        Optional<Quiz> opQuiz = quizRepository.findById(id);
+        Optional<Quiz> opQuiz = quizRepository.findByIdAndDeletedFalse(id);
         if (opQuiz.isEmpty())
             throw new NotFoundException("Unable To Find Quiz With ID " + id);
         if (questionRequestDto == null || questionRequestDto.getText() == null)
@@ -158,8 +166,9 @@ public class QuizServiceImpl implements QuizService {
     public QuestionResponseDto deleteQuestion(Long id, Long questionId) {
         // Implemented: If invalid ID passed for quiz OR question, not found.
         // If question does not belong to the quiz (with the quiz ID passed) return not found
-        Optional<Quiz> opQuiz = quizRepository.findById(id);
-        Optional<Question> opQuestion = questionRepository.findById(questionId);
+        // Sets question deleted flag to true and all children/answers
+        Optional<Quiz> opQuiz = quizRepository.findByIdAndDeletedFalse(id);
+        Optional<Question> opQuestion = questionRepository.findByIdAndDeletedFalse(questionId);
         if (opQuiz.isEmpty())
             throw new NotFoundException("Unable To Find Quiz With ID " + id);
         if (opQuestion.isEmpty())
@@ -167,11 +176,43 @@ public class QuizServiceImpl implements QuizService {
         Quiz quiz = opQuiz.get();
         Question question = opQuestion.get();
         if (quiz.getQuestions().contains(question)) {
-            quiz.removeQuestion(question);
-            questionRepository.delete(question);
-            quizRepository.saveAndFlush(quiz);
-            return questionMapper.entityToDto(question);
+            question.setDeleted(true);
+            for(var answer : question.getAnswers()) {
+                answer.setDeleted(true);
+                answerRepository.saveAndFlush(answer);
+            }
+            return questionMapper.entityToDto(questionRepository.saveAndFlush(question));
         }
         throw new NotFoundException("Unable To Find Question With ID " + questionId);
+    }
+
+    @Override
+    public AnswerResponseDto deleteAnswer(Long id, Long qId, Long aId) {
+        // Problem, deleted answer still showing up when getting all quizzes
+        Optional<Quiz> opQuiz = quizRepository.findByIdAndDeletedFalse(id);
+        Optional<Question> opQuestion = questionRepository.findByIdAndDeletedFalse(qId);
+        Optional<Answer> opAnswer = answerRepository.findByIdAndDeletedFalse(aId);
+        if(opQuiz.isEmpty())
+            throw new NotFoundException("Unable To Find Quiz With ID " + id);
+        if(opQuestion.isEmpty())
+            throw new NotFoundException("Unable To Find Question With ID " + qId);
+        if(opAnswer.isEmpty())
+            throw new NotFoundException("Unable To Find Answer With ID " + aId);
+
+        Quiz quiz = opQuiz.get();
+        Question question = opQuestion.get();
+        Answer answer = opAnswer.get();
+
+        if(quiz.getQuestions().contains(question)) {
+            if(question.getAnswers().contains(answer)) {
+                answer.setDeleted(true);
+                answerRepository.saveAndFlush(answer);
+                return answerMapper.entityToDto(answer);
+            }
+            questionRepository.saveAndFlush(question);
+            quizRepository.saveAndFlush(quiz);
+        }
+
+        throw new NotFoundException("Could Not Find Answer With ID " + aId + " Within Question With ID " + qId + " Within Quiz With ID " + id);
     }
 }

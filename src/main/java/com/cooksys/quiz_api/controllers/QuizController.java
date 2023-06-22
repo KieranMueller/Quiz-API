@@ -2,10 +2,7 @@ package com.cooksys.quiz_api.controllers;
 
 import java.util.List;
 
-import com.cooksys.quiz_api.dtos.QuestionRequestDto;
-import com.cooksys.quiz_api.dtos.QuestionResponseDto;
-import com.cooksys.quiz_api.dtos.QuizRequestDto;
-import com.cooksys.quiz_api.dtos.QuizResponseDto;
+import com.cooksys.quiz_api.dtos.*;
 import com.cooksys.quiz_api.services.QuizService;
 
 import com.cooksys.quiz_api.services.impl.QuizServiceImpl;
@@ -59,10 +56,15 @@ public class QuizController {
         return quizService.addQuestion(id, questionRequestDto);
     }
 
-    @DeleteMapping("/{id}/delete/{questionId}")
+    @DeleteMapping("/{id}/delete/{qId}")
     @ResponseStatus(HttpStatus.OK)
-    public QuestionResponseDto deleteQuestion(@PathVariable Long id, @PathVariable Long questionId) {
-        return quizService.deleteQuestion(id, questionId);
+    public QuestionResponseDto deleteQuestion(@PathVariable Long id, @PathVariable Long qId) {
+        return quizService.deleteQuestion(id, qId);
     }
 
+    @DeleteMapping("/{id}/delete/{qId}/{aId}")
+    @ResponseStatus(HttpStatus.OK)
+    public AnswerResponseDto deleteAnswer(@PathVariable Long id, @PathVariable Long qId, @PathVariable Long aId) {
+        return quizService.deleteAnswer(id, qId, aId);
+    }
 }

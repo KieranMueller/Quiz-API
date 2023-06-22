@@ -3,11 +3,9 @@ package com.cooksys.quiz_api.services;
 import java.util.List;
 import java.util.Optional;
 
-import com.cooksys.quiz_api.dtos.QuestionRequestDto;
-import com.cooksys.quiz_api.dtos.QuestionResponseDto;
-import com.cooksys.quiz_api.dtos.QuizRequestDto;
-import com.cooksys.quiz_api.dtos.QuizResponseDto;
+import com.cooksys.quiz_api.dtos.*;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 
 public interface QuizService {
 
@@ -24,4 +22,7 @@ public interface QuizService {
   QuizResponseDto addQuestion(Long id, QuestionRequestDto questionRequestDto);
 
   QuestionResponseDto deleteQuestion(Long id, Long questionId);
+
+  AnswerResponseDto deleteAnswer(Long id, Long qId, Long aId);
+
 }
